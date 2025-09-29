@@ -1,5 +1,5 @@
 "use client";
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Image from "next/image";
@@ -44,10 +44,9 @@ export default function Home() {
       setForecast(forecastRes.data.list);
       
     }
-     //typescript-eslint/no-unused-vars 
     catch (err) {
-      setError("City not found");
-      setCurrent(null);
+      setError("City not found"+ err);
+      setCurrent(null); 
       setForecast([]);
     } finally {
       setLoading(false);
@@ -66,7 +65,6 @@ export default function Home() {
   
   // Group forecast by day (for daily forecast)
   const dailyForecast = Object.values(
-    //typescript-eslint/no-unused-vars
     forecast.reduce((acc: any, item) => {
       const date = new Date(item.dt * 1000).toLocaleDateString();
       if (!acc[date]) {
@@ -177,7 +175,7 @@ export default function Home() {
               <div className="mt-8">
                 <h3 className="text-xl font-semibold mb-3">5-Day Forecast</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {dailyForecast.map((d, i) => (
+                  {dailyForecast.map((d:any, i) => (
                     <div
                       key={i}
                       className="bg-white/20 p-4 rounded-xl flex flex-col items-center"
