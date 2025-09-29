@@ -78,7 +78,7 @@ export default function Home() {
   )
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-900 text-white flex flex-col">
+    <main className="min-h-screen bg-gradient-to-br from-blue-300 to-indigo-900 text-white flex flex-col">
       <div className="min-h-screen w-full bg-black/30 flex flex-col">
         {/* Navbar */}
         <nav className="flex justify-between items-center px-8 py-4 bg-white/10 backdrop-blur-lg shadow-md">
