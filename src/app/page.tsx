@@ -1,103 +1,198 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+interface CurrentWeather {
+  name: string;
+  sys: { country: string; sunrise: number; sunset: number };
+  main: { temp: number; feels_like: number; humidity: number; pressure: number };
+  visibility: number;
+  wind: { speed: number };
+  weather: { description: string; icon: string }[];
+}
+
+interface ForecastItem {
+  dt: number;
+  main: { temp: number; temp_min: number; temp_max: number };
+  weather: { description: string; icon: string }[];
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [city, setCity] = useState("Jhelum");
+  const [current, setCurrent] = useState<CurrentWeather | null>(null);
+  const [forecast, setForecast] = useState<ForecastItem[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const fetchWeather = async (searchCity: string) => {
+    try {
+      setError("");
+      setLoading(true);
+
+      // current weather
+      const currentRes = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${searchCity}&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}&units=metric`
+      );
+      setCurrent(currentRes.data);
+
+      // forecast
+      const forecastRes = await axios.get(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${searchCity}&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}&units=metric`
+      );
+      setForecast(forecastRes.data.list);
+    } catch (err) {
+      setError("City not found");
+      setCurrent(null);
+      setForecast([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWeather("Jhelum");
+  }, []);
+
+  const formatTime = (unix: number) =>
+    new Date(unix * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const formatDate = (unix: number) =>
+    new Date(unix * 1000).toLocaleDateString([], { weekday: "short" });
+
+  // Group forecast by day (for daily forecast)
+  const dailyForecast = Object.values(
+    forecast.reduce((acc: any, item) => {
+      const date = new Date(item.dt * 1000).toLocaleDateString();
+      if (!acc[date]) {
+        acc[date] = { ...item, temp_min: item.main.temp_min, temp_max: item.main.temp_max };
+      } else {
+        acc[date].temp_min = Math.min(acc[date].temp_min, item.main.temp_min);
+        acc[date].temp_max = Math.max(acc[date].temp_max, item.main.temp_max);
+      }
+      return acc;
+    }, {})
+  )
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-900 text-white flex flex-col">
+      <div className="min-h-screen w-full bg-black/30 flex flex-col">
+        {/* Navbar */}
+        <nav className="flex justify-between items-center px-8 py-4 bg-white/10 backdrop-blur-lg shadow-md">
+          <h1 className="text-2xl font-bold">🌤 Weather</h1>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Enter city..."
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="px-4 py-2 rounded-md outline-blue-500 outline focus:outline-white text-white"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <button
+              onClick={() => fetchWeather(city)}
+              disabled={loading || !city.trim()}
+              className={`px-4 py-2 rounded-md font-semibold transition cursor-pointer ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-500 text-black hover:bg-blue-600"
+              }`}
+            >
+              {loading ? "..." : "Search"}
+            </button>
+          </div>
+        </nav>
+
+        {/* Main Weather Section */}
+        <section className="container mx-auto px-8 py-10">
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : current ? (
+            <>
+              {/* Current */}
+              <div className="flex items-center justify-between bg-white/20 p-6 rounded-3xl shadow-lg">
+                <div>
+                  <h2 className="text-5xl font-bold">
+                    {Math.round(current.main.temp)}°C
+                  </h2>
+                  <p>{current.name}, {current.sys.country}</p>
+
+                  <p className="capitalize">{current.weather[0].description}</p>
+                  <p className="text-sm">
+                    Feels like {Math.round(current.main.feels_like)}°C
+                  </p>
+                  <p className="text-sm">
+                    💧 {current.main.humidity}% | 🌬 {current.wind.speed} m/s
+                  </p>
+                  <p className="text-sm">Pressure: {current.main.pressure} hPa</p>
+                  <p className="text-sm">Visibility: {current.visibility / 1000} km</p>
+                  <p className="text-sm">
+                    🌅 {formatTime(current.sys.sunrise)} | 🌇 {formatTime(current.sys.sunset)}
+                  </p>
+                </div>
+                <img
+                  src={`https://openweathermap.org/img/wn/${current.weather[0].icon}@4x.png`}
+                  alt="icon"
+                  className="w-40 h-40"
+                />
+              </div>
+
+              {/* Hourly Forecast */}
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-3">Next Hours</h3>
+                <div className="flex gap-4 overflow-x-auto pb-4">
+                  {forecast.slice(0, 6).map((h, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col items-center bg-white/20 p-3 rounded-xl w-20"
+                    >
+                      <p className="text-sm">
+                        {new Date(h.dt * 1000).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                      <img
+                        src={`https://openweathermap.org/img/wn/${h.weather[0].icon}.png`}
+                        alt=""
+                        className="w-10 h-10"
+                      />
+                      <p>{Math.round(h.main.temp)}°</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5-Day Forecast */}
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-3">5-Day Forecast</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {dailyForecast.map((d: any, i) => (
+                    <div
+                      key={i}
+                      className="bg-white/20 p-4 rounded-xl flex flex-col items-center"
+                    >
+                      <p>{formatDate(d.dt)}</p>
+                      <img
+                        src={`https://openweathermap.org/img/wn/${d.weather[0].icon}.png`}
+                        alt=""
+                        className="w-12 h-12"
+                      />
+                      <p className="text-sm capitalize">{d.weather[0].description}</p>
+                      <p className="text-sm">
+                        {Math.round(d.temp_max)}° / {Math.round(d.temp_min)}°
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            error && <p className="text-red-300">{error}</p>
+          )}
+        </section>
+      </div>
+    </main>
   );
 }
