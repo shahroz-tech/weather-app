@@ -42,7 +42,10 @@ export default function Home() {
         `https://api.openweathermap.org/data/2.5/forecast?q=${searchCity}&appid=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}&units=metric`
       );
       setForecast(forecastRes.data.list);
-    } catch (err) {
+      
+    }
+     //typescript-eslint/no-unused-vars 
+    catch (err) {
       setError("City not found");
       setCurrent(null);
       setForecast([]);
@@ -60,9 +63,10 @@ export default function Home() {
 
   const formatDate = (unix: number) =>
     new Date(unix * 1000).toLocaleDateString([], { weekday: "short" });
-
+  
   // Group forecast by day (for daily forecast)
   const dailyForecast = Object.values(
+    //typescript-eslint/no-unused-vars
     forecast.reduce((acc: any, item) => {
       const date = new Date(item.dt * 1000).toLocaleDateString();
       if (!acc[date]) {
@@ -173,7 +177,7 @@ export default function Home() {
               <div className="mt-8">
                 <h3 className="text-xl font-semibold mb-3">5-Day Forecast</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {dailyForecast.map((d: any, i) => (
+                  {dailyForecast.map((d, i) => (
                     <div
                       key={i}
                       className="bg-white/20 p-4 rounded-xl flex flex-col items-center"
