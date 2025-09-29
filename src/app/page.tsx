@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Image from "next/image";
 
 interface CurrentWeather {
   name: string;
@@ -131,10 +132,12 @@ export default function Home() {
                     🌅 {formatTime(current.sys.sunrise)} | 🌇 {formatTime(current.sys.sunset)}
                   </p>
                 </div>
-                <img
+                <Image
                   src={`https://openweathermap.org/img/wn/${current.weather[0].icon}@4x.png`}
                   alt="icon"
                   className="w-40 h-40"
+                  height={40}
+                  width={40}
                 />
               </div>
 
@@ -153,11 +156,13 @@ export default function Home() {
                           minute: "2-digit",
                         })}
                       </p>
-                      <img
-                        src={`https://openweathermap.org/img/wn/${h.weather[0].icon}.png`}
-                        alt=""
-                        className="w-10 h-10"
-                      />
+                      <Image
+                  src={`https://openweathermap.org/img/wn/${h.weather[0].icon}.png`}
+                  alt="icon"
+                  className="w-12 h-12"
+                  height={40}
+                  width={40}
+                />
                       <p>{Math.round(h.main.temp)}°</p>
                     </div>
                   ))}
@@ -174,11 +179,13 @@ export default function Home() {
                       className="bg-white/20 p-4 rounded-xl flex flex-col items-center"
                     >
                       <p>{formatDate(d.dt)}</p>
-                      <img
-                        src={`https://openweathermap.org/img/wn/${d.weather[0].icon}.png`}
-                        alt=""
-                        className="w-12 h-12"
-                      />
+                          <Image
+                  src={`https://openweathermap.org/img/wn/${d.weather[0].icon}.png`}
+                  alt="icon"
+                  className="w-12 h-12"
+                  height={12}
+                  width={12}
+                />
                       <p className="text-sm capitalize">{d.weather[0].description}</p>
                       <p className="text-sm">
                         {Math.round(d.temp_max)}° / {Math.round(d.temp_min)}°
